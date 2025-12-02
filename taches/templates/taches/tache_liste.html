@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des Tâches{% endblock %}
+
+{% block content %}
+    <a href="{% url 'ajouter_tache' %}">Ajouter une nouvelle tâche</a>
+    <ul>
+        {% for tache in taches %}
+            <li>
+                <strong>{{ tache.titre }}</strong> - {{ tache.cree_le }}<br>
+                {{ tache.description }}<br>
+                <a href="{% url 'modifier_tache' tache.id %}">Modifier</a>
+                <a href="{% url 'supprimer_tache' tache.id %}">Supprimer</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
