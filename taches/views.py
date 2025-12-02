@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .models import Tache
 from .forms import TacheForm
 
@@ -14,4 +14,15 @@ def ajouter_tache(request):
             return redirect('liste_taches')
     else:
         form = TacheForm()
+    return render(request, 'taches/tache_form.html', {'form': form})
+
+def modifier_tache(request, id):
+    tache = get_object_or_404(Tache, id=id)
+    if request.method == 'POST':
+        form = TacheForm(request.POST, instance=tache)
+        if form.is_valid():
+            form.save()
+            return redirect('liste_taches')
+    else:
+        form = TacheForm(instance=tache)
     return render(request, 'taches/tache_form.html', {'form': form})
