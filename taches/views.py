@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import TacheSerializer
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.viewsets import ModelViewSet
 
 def liste_taches(request):
     taches = Tache.objects.all().order_by('-cree_le')
@@ -38,15 +39,17 @@ def supprimer_tache(request, id):
         return redirect('liste_taches')
     return render(request, 'taches/tache_confirm_delete.html', {'tache': tache})
 
-class TacheListCreateAPIView(ListCreateAPIView):
-    """Vue API basée sur la classe Tache pour lister et créer des tâches."""
-    queryset = Tache.objects.all()
+class TacheViewSet(ModelViewSet):
+    """ViewSet pour gérer les opérations CRUD sur les tâches de l'utilisateur connecté."""
     serializer_class = TacheSerializer
 
-class TacheRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    """Vue API basée sur une classe pour récupérer, mettre à jour ou supprimer une tâche."""
-    queryset = Tache.objects.all()
-    serializer_class = TacheSerializer
+    def get_queryset(self):
+        # Retourne uniquement les tâches de l'utilisateur connecté
+        return Tache.objects.filter(owner=self.request.user).order_by('-cree_le')
+
+    def perform_create(self, serializer):
+        # Associe automatiquement l'utilisateur connecté comme propriétaire
+        serializer.save(owner=self.request.user)
 
 @api_view(['GET', 'POST'])
 def liste_taches_api(request):
