@@ -26,3 +26,10 @@ def modifier_tache(request, id):
     else:
         form = TacheForm(instance=tache)
     return render(request, 'taches/tache_form.html', {'form': form})
+
+def supprimer_tache(request, id):
+    tache = get_object_or_404(Tache, id=id)
+    if request.method == 'POST':
+        tache.delete()
+        return redirect('liste_taches')
+    return render(request, 'taches/tache_confirm_delete.html', {'tache': tache})
