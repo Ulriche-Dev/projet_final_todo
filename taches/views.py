@@ -4,6 +4,7 @@ from .forms import TacheForm
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import TacheSerializer
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
 def liste_taches(request):
     taches = Tache.objects.all().order_by('-cree_le')
@@ -36,6 +37,16 @@ def supprimer_tache(request, id):
         tache.delete()
         return redirect('liste_taches')
     return render(request, 'taches/tache_confirm_delete.html', {'tache': tache})
+
+class TacheListCreateAPIView(ListCreateAPIView):
+    """Vue API basée sur la classe Tache pour lister et créer des tâches."""
+    queryset = Tache.objects.all()
+    serializer_class = TacheSerializer
+
+class TacheRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    """Vue API basée sur une classe pour récupérer, mettre à jour ou supprimer une tâche."""
+    queryset = Tache.objects.all()
+    serializer_class = TacheSerializer
 
 @api_view(['GET', 'POST'])
 def liste_taches_api(request):
