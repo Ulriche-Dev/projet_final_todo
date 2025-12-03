@@ -44,8 +44,10 @@ class TacheViewSet(ModelViewSet):
     serializer_class = TacheSerializer
 
     def get_queryset(self):
-        # Retourne uniquement les tâches de l'utilisateur connecté
-        return Tache.objects.filter(owner=self.request.user).order_by('-cree_le')
+        user = self.request.user
+        if user.is_authenticated:
+            return Tache.objects.filter(owner=user).order_by('-cree_le')
+        return Tache.objects.none()  # Aucun résultat pour les utilisateurs anonymes
 
     def perform_create(self, serializer):
         # Associe automatiquement l'utilisateur connecté comme propriétaire
