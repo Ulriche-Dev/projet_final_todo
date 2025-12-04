@@ -126,3 +126,7 @@ pip-delete-this-directory.txt
 
 # pytype static type analyzer
 .pytype/
+
+# C extensions
+*.so
+node_modules

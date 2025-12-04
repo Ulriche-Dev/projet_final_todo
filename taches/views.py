@@ -4,6 +4,10 @@ from .forms import TacheForm
 from .serializers import TacheSerializer
 from rest_framework.viewsets import ModelViewSet
 
+from django.views.generic import View
+from django.http import HttpResponse
+import os
+
 # Vues classiques Django (HTML)
 def liste_taches(request):
     taches = Tache.objects.all().order_by('-cree_le')
@@ -50,3 +54,14 @@ class TacheViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+class FrontendAppView(View):
+    def get(self, request):
+        try:
+            with open(os.path.join(os.path.dirname(__file__), '../frontend/dist/index.html')) as f:
+                return HttpResponse(f.read())
+        except FileNotFoundError:
+            return HttpResponse(
+                "Le build React n'existe pas. Exécutez 'npm run build' dans le dossier frontend.",
+                status=501,
+            )

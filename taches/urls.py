@@ -2,7 +2,6 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 
-# Création du routeur
 router = DefaultRouter()
 router.register(r'taches', views.TacheViewSet, basename='tache')
 
@@ -11,7 +10,5 @@ urlpatterns = [
     path('ajouter/', views.ajouter_tache, name='ajouter_tache'),
     path('<int:id>/modifier/', views.modifier_tache, name='modifier_tache'),
     path('<int:id>/supprimer/', views.supprimer_tache, name='supprimer_tache'),
-    
-    # Inclusion des routes générées par le routeur DRF
     path('api/', include(router.urls)),
 ]

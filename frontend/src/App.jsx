@@ -1,25 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import TacheListe from './components/TacheListe';
 import AjoutTacheForm from './components/AjoutTacheForm';
+import LoginPage from './components/LoginPage';
+import {
+  fetchTaches,
+  ajouterTache,
+  supprimerTache,
+  toggleTache,
+} from './api';
 
 function App() {
+  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
   const [taches, setTaches] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [erreur, setErreur] = useState(null);
-  const token = '63c3972ec0bf3f6f09da312be152f1c79138a1dc'; // tjk
-  // const token = '0a0130a7ae459d84e03d0a3b3c632aeda47c8119'; // user2
 
+  // Connexion
+  const handleLogin = async (username, password) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/token/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Échec de la connexion :', errorData);
+        throw new Error('Identifiants invalides');
+      }
+
+      const data = await response.json();
+      const token = data.token || data.key || data.access || data.auth_token;
+
+      if (!token) {
+        throw new Error("Le token n'a pas été trouvé dans la réponse.");
+      }
+
+      localStorage.setItem('token', token);
+      setToken(token);
+    } catch (error) {
+      console.error('Erreur lors de la connexion :', error.message);
+      setErreur("Connexion échouée. Vérifie tes identifiants.");
+    }
+  };
+
+  // Déconnexion
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setToken('');
+    setTaches([]);
+    setErreur(null);
+  };
+
+  // Chargement des tâches
   useEffect(() => {
-    const fetchTaches = async () => {
+    if (!token) return;
+
+    const charger = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:8000/taches/api/taches/', {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
-        const data = await response.json();
+        const data = await fetchTaches(token);
         setTaches(data);
       } catch (error) {
         console.error('Erreur lors de la récupération des tâches :', error);
@@ -29,31 +70,13 @@ function App() {
       }
     };
 
-    fetchTaches();
-  }, []);
+    charger();
+  }, [token]);
 
+  // ➕ Ajout
   const handleAjoutTache = async (titre, description) => {
     try {
-      const response = await fetch('http://localhost:8000/taches/api/taches/', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          titre,
-          description: description || '',
-          termine: false,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Erreur API (ajout) :', errorData);
-        throw new Error(`Erreur HTTP : ${response.status}`);
-      }
-
-      const nouvelleTache = await response.json();
+      const nouvelleTache = await ajouterTache(token, titre, description);
       setTaches((prev) => [...prev, nouvelleTache]);
     } catch (error) {
       console.error('Erreur lors de l’ajout de la tâche :', error);
@@ -61,55 +84,24 @@ function App() {
     }
   };
 
+  // Suppression
   const handleSupprimeTache = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8000/taches/api/taches/${id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.status === 204) {
-        setTaches((prev) => prev.filter((tache) => tache.id !== id));
-      } else {
-        throw new Error(`Erreur HTTP : ${response.status}`);
-      }
+      await supprimerTache(token, id);
+      setTaches((prev) => prev.filter((tache) => tache.id !== id));
     } catch (error) {
       console.error('Erreur lors de la suppression de la tâche :', error);
       setErreur("Impossible de supprimer la tâche.");
     }
   };
 
+  // Toggle
   const handleToggleTache = async (id, termine) => {
     const tache = taches.find((t) => t.id === id);
-    if (!tache) {
-      console.error("Tâche introuvable pour le toggle :", id);
-      return;
-    }
+    if (!tache) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/taches/api/taches/${id}/`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          titre: tache.titre,
-          description: tache.description || '',
-          termine: !termine,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Erreur API (toggle) :', errorData);
-        throw new Error(`Erreur HTTP : ${response.status}`);
-      }
-
-      const tacheModifiee = await response.json();
-
+      const tacheModifiee = await toggleTache(token, tache);
       setTaches((prevTaches) =>
         prevTaches.map((t) =>
           t.id === id ? { ...t, termine: tacheModifiee.termine } : t
@@ -121,9 +113,15 @@ function App() {
     }
   };
 
+  // Affichage conditionnel
+  if (!token) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <div>
       <h1>Ma Liste de Tâches</h1>
+      <button onClick={handleLogout}>Se déconnecter</button>
       <AjoutTacheForm onAjoutTache={handleAjoutTache} />
       {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
       {isLoading ? (
