@@ -1,12 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Tache
 from .forms import TacheForm
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from .serializers import TacheSerializer
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.viewsets import ModelViewSet
 
+# Vues classiques Django (HTML)
 def liste_taches(request):
     taches = Tache.objects.all().order_by('-cree_le')
     return render(request, 'taches/tache_liste.html', {'taches': taches})
@@ -39,54 +37,16 @@ def supprimer_tache(request, id):
         return redirect('liste_taches')
     return render(request, 'taches/tache_confirm_delete.html', {'tache': tache})
 
+# ViewSet REST API
 class TacheViewSet(ModelViewSet):
-    """ViewSet pour gérer les opérations CRUD sur les tâches de l'utilisateur connecté."""
+    """API REST : CRUD sur les tâches de l'utilisateur connecté."""
     serializer_class = TacheSerializer
 
     def get_queryset(self):
         user = self.request.user
         if user.is_authenticated:
             return Tache.objects.filter(owner=user).order_by('-cree_le')
-        return Tache.objects.none()  # Aucun résultat pour les utilisateurs anonymes
+        return Tache.objects.none()
 
     def perform_create(self, serializer):
-        # Associe automatiquement l'utilisateur connecté comme propriétaire
         serializer.save(owner=self.request.user)
-
-@api_view(['GET', 'POST'])
-def liste_taches_api(request):
-    """Vue API pour lister les tâches (GET) ou en créer une nouvelle (POST)."""
-    if request.method == 'GET':
-        taches = Tache.objects.all()
-        serializer = TacheSerializer(taches, many=True)
-        return Response(serializer.data)
-
-    if request.method == 'POST':
-        serializer = TacheSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)  # 201 Created
-        return Response(serializer.errors, status=400)  # 400 Bad Request
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def detail_tache_api(request, pk):
-    """Vue API pour récupérer, mettre à jour ou supprimer une tâche."""
-    try:
-        tache = Tache.objects.get(pk=pk)
-    except Tache.DoesNotExist:
-        return Response({'error': 'Tâche non trouvée'}, status=404)
-
-    if request.method == 'GET':
-        serializer = TacheSerializer(tache)
-        return Response(serializer.data)
-
-    if request.method == 'PUT':
-        serializer = TacheSerializer(tache, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    if request.method == 'DELETE':
-        tache.delete()
-        return Response({'message': 'Tâche supprimée avec succès'}, status=204)
