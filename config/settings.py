@@ -160,3 +160,19 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Celery - Broker (file d'attente)
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# Celery - Backend de résultats
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Format des messages acceptés
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# Pour sérialiser les résultats aussi en JSON
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Pour éviter les tâches en double
+CELERY_TASK_IGNORE_RESULT = False
