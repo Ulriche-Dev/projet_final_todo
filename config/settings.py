@@ -177,3 +177,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 
 # Pour éviter les tâches en double
 CELERY_TASK_IGNORE_RESULT = False
+
+# Pour envoyer les emails dans la console (développement)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
