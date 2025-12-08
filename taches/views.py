@@ -11,6 +11,8 @@ import os
 from django.http import JsonResponse
 from .tasks import tache_test_asynchrone
 
+from .tasks import send_creation_email
+
 # Vues classiques Django (HTML)
 def liste_taches(request):
     taches = Tache.objects.all().order_by('-cree_le')
@@ -57,6 +59,7 @@ class TacheViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+        send_creation_email.delay(serializer.instance.id)
 
 class FrontendAppView(View):
     def get(self, request):

@@ -129,7 +129,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend', 'dist', 'assets'),  # pour les fichiers JS/CSS
+    os.path.join(BASE_DIR, 'static'),  # Pour le CSS Django
+    os.path.join(BASE_DIR, 'frontend', 'dist', 'assets'),  # Pour le frontend JS/CSS
 ]
 
 # Pour les fichiers statiques
@@ -176,3 +177,6 @@ CELERY_RESULT_SERIALIZER = 'json'
 
 # Pour éviter les tâches en double
 CELERY_TASK_IGNORE_RESULT = False
+
+# Pour envoyer les emails dans la console (développement)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
