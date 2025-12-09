@@ -15,6 +15,8 @@ function App() {
   const [taches, setTaches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [erreur, setErreur] = useState(null);
+  const [reportTaskId, setReportTaskId] = useState(null); // Nouvel état
+  const [reportStatus, setReportStatus] = useState('');   // Nouvel état
 
   // Connexion
   const handleLogin = async (username, password) => {
@@ -114,6 +116,49 @@ function App() {
     }
   };
 
+  // Génération du rapport
+  const handleGenerateReport = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api-token-auth/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username, password }),
+});
+      if (!response.ok) throw new Error('Erreur lors du démarrage du rapport');
+      const data = await response.json();
+      setReportTaskId(data.task_id);
+      setReportStatus('Traitement lancé...');
+    } catch (error) {
+      setReportStatus('Erreur lors du lancement du rapport.');
+    }
+  };
+
+  // Suivi du statut du rapport
+  useEffect(() => {
+    if (!reportTaskId) return;
+    let intervalId = null;
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(`http://127.0.0.1:8000/check-report-status/${reportTaskId}/`, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        if (!response.ok) throw new Error('Erreur lors du suivi du rapport');
+        const data = await response.json();
+        setReportStatus(`Statut: ${data.state}${data.result ? ' | Résultat: ' + data.result : ''}`);
+        if (data.state === 'SUCCESS' || data.state === 'FAILURE') {
+          clearInterval(intervalId);
+        }
+      } catch (error) {
+        setReportStatus('Erreur lors du suivi du rapport.');
+        clearInterval(intervalId);
+      }
+    };
+    intervalId = setInterval(checkStatus, 3000);
+    // Lancer une première fois immédiatement
+    checkStatus();
+    return () => clearInterval(intervalId);
+  }, [reportTaskId, token]);
+
   // Affichage conditionnel
   if (!token) {
     return <LoginPage onLogin={handleLogin} />;
@@ -123,6 +168,8 @@ function App() {
     <div>
       <h1>Ma Liste de Tâches</h1>
       <button onClick={handleLogout}>Se déconnecter</button>
+      <button onClick={handleGenerateReport}>Générer un Rapport</button>
+      {reportStatus && <p style={{ color: '#0af' }}>{reportStatus}</p>}
       <AjoutTacheForm onAjoutTache={handleAjoutTache} />
       {erreur && <p style={{ color: 'red' }}>{erreur}</p>}
       {isLoading ? (

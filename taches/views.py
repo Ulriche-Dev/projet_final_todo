@@ -12,6 +12,10 @@ from django.http import JsonResponse
 from .tasks import tache_test_asynchrone
 
 from .tasks import send_creation_email
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from celery.result import AsyncResult
+from .tasks import generate_task_report
 
 # Vues classiques Django (HTML)
 def liste_taches(request):
@@ -76,4 +80,18 @@ class TestCeleryView(View):
     def get(self, request):
         tache_test_asynchrone.delay()
         return JsonResponse({'message': 'Tâche Celery déclenchée !'})
+
+class StartReportGenerationView(APIView):
+    def post(self, request):
+        task = generate_task_report.delay()
+        return Response({'task_id': task.id})
+
+class CheckTaskStatusView(APIView):
+    def get(self, request, task_id):
+        result = AsyncResult(task_id)
+        return Response({
+            'task_id': task_id,
+            'state': result.state,
+            'result': result.result
+        })
 
