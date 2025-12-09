@@ -127,4 +127,21 @@ pip-delete-this-directory.txt
 # pytype static type analyzer
 .pytype/
 
-frontend/node_modules
+node_modules/
+frontend/node_modules/
+
+# Ignorer les fichiers sans extension de plus de 6 caractères
+??????????
+
+# Fichiers non désirés repérés dans le commit
+040af88f5bce
+386d8462c62c
+63f21d6cac1c
+7fd130bee0e3
+9d5eb1821c11
+ac607f12aefb
+b380e24ce661
+d264478764c3
+Removed
+Running
+Using

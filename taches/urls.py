@@ -2,6 +2,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
 
+from .views import TestCeleryView
+
 router = DefaultRouter()
 router.register(r'taches', views.TacheViewSet, basename='tache')
 
@@ -11,4 +13,6 @@ urlpatterns = [
     path('<int:id>/modifier/', views.modifier_tache, name='modifier_tache'),
     path('<int:id>/supprimer/', views.supprimer_tache, name='supprimer_tache'),
     path('api/', include(router.urls)),
+    
+    path('test-celery/', TestCeleryView.as_view(), name='test_celery'),
 ]

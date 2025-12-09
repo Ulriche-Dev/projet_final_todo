@@ -1,0 +1,9 @@
+# Dockerfile.base
+FROM python:3.10-slim
+
+# Installer les dépendances système nécessaires
+RUN apt-get update && apt-get install -y build-essential libsndfile1 git
+
+# Installer les dépendances lourdes
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir TTS

@@ -8,6 +8,7 @@ import {
   supprimerTache,
   toggleTache,
 } from './api';
+import './styles.css';
 
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem('token') || '');

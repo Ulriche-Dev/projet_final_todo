@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-t-84%(i3qs)$g)hg+@f7&i@_##m#-=1rrka2dmb9=!w4!40(wh
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -129,7 +129,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend', 'dist', 'assets'),  # pour les fichiers JS/CSS
+    os.path.join(BASE_DIR, 'static'),  # Pour le CSS Django
+    os.path.join(BASE_DIR, 'frontend', 'dist', 'assets'),  # Pour le frontend JS/CSS
 ]
 
 # Pour les fichiers statiques
@@ -152,11 +153,31 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "http://18.217.99.255:5174", 'http://18.217.99.255:8000'
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Celery - Broker (file d'attente)
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# Celery - Backend de résultats
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Format des messages acceptés
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+
+# Pour sérialiser les résultats aussi en JSON
+CELERY_RESULT_SERIALIZER = 'json'
+
+# Pour éviter les tâches en double
+CELERY_TASK_IGNORE_RESULT = False
+
+# Pour envoyer les emails dans la console (développement)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
