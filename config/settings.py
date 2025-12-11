@@ -13,6 +13,7 @@ import os
 from corsheaders.defaults import default_headers
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,10 +26,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-t-84%(i3qs)$g)hg+@f7&i@_##m#-=1rrka2dmb9=!w4!40(wh'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG", default=True, cast=bool)
 
-ALLOWED_HOSTS = ['*']
+SECRET_KEY = config("SECRET_KEY")
 
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=lambda v: [s.strip() for s in v.split(",")])
+
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
 # Application definition
 
@@ -153,9 +157,7 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "http://18.217.99.255:5174", 'http://18.217.99.255:8000'
+    FRONTEND_URL,
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
@@ -164,10 +166,10 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 CORS_ALLOW_CREDENTIALS = True
 
 # Celery - Broker (file d'attente)
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://redis:6379/0")
 
 # Celery - Backend de résultats
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default="redis://redis:6379/0")
 
 # Format des messages acceptés
 CELERY_ACCEPT_CONTENT = ['json']

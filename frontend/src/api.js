@@ -1,7 +1,15 @@
-const API_BASE = 'http://127.0.0.1:8000/taches/api/taches/';
+// api.js
+const API_BASE = import.meta.env.VITE_API_BASE;
+const API_TOKEN = import.meta.env.VITE_API_TOKEN;
+
+// Fonction utilitaire pour construire l'URL complète
+function getFullUrl(path) {
+  // Utilise le même domaine et protocole que le frontend
+  return `${window.location.protocol}//${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}${path}`;
+}
 
 export async function fetchTaches(token) {
-  const response = await fetch(API_BASE, {
+  const response = await fetch(getFullUrl(API_BASE), {
     headers: {
       'Authorization': `Token ${token}`,
       'Content-Type': 'application/json',
@@ -12,7 +20,7 @@ export async function fetchTaches(token) {
 }
 
 export async function ajouterTache(token, titre, description) {
-  const response = await fetch(API_BASE, {
+  const response = await fetch(getFullUrl(API_BASE), {
     method: 'POST',
     headers: {
       'Authorization': `Token ${token}`,
@@ -25,7 +33,7 @@ export async function ajouterTache(token, titre, description) {
 }
 
 export async function supprimerTache(token, id) {
-  const response = await fetch(`${API_BASE}${id}/`, {
+  const response = await fetch(getFullUrl(`${API_BASE}${id}/`), {
     method: 'DELETE',
     headers: {
       'Authorization': `Token ${token}`,
@@ -36,7 +44,7 @@ export async function supprimerTache(token, id) {
 }
 
 export async function toggleTache(token, tache) {
-  const response = await fetch(`${API_BASE}${tache.id}/`, {
+  const response = await fetch(getFullUrl(`${API_BASE}${tache.id}/`), {
     method: 'PATCH',
     headers: {
       'Authorization': `Token ${token}`,
@@ -49,5 +57,16 @@ export async function toggleTache(token, tache) {
     }),
   });
   if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`);
+  return await response.json();
+}
+
+// Pour la connexion
+export async function login(username, password) {
+  const response = await fetch(getFullUrl(API_TOKEN), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  if (!response.ok) throw new Error('Échec de la connexion');
   return await response.json();
 }

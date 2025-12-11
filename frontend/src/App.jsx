@@ -9,6 +9,8 @@ import {
   toggleTache,
 } from './api';
 import './styles.css';
+import { login, fetchTaches, ajouterTache, supprimerTache, toggleTache } from './api';
+
 
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem('token') || '');
@@ -16,28 +18,12 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [erreur, setErreur] = useState(null);
 
-  // Connexion
+
   const handleLogin = async (username, password) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/token/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Échec de la connexion :', errorData);
-        throw new Error('Identifiants invalides');
-      }
-
-      const data = await response.json();
+      const data = await login(username, password);
       const token = data.token || data.key || data.access || data.auth_token;
-
-      if (!token) {
-        throw new Error("Le token n'a pas été trouvé dans la réponse.");
-      }
-
+      if (!token) throw new Error("Le token n'a pas été trouvé.");
       localStorage.setItem('token', token);
       setToken(token);
     } catch (error) {
