@@ -17,4 +17,6 @@ urlpatterns = [
     path('test-celery/', TestCeleryView.as_view(), name='test_celery'),
     path('start-report/', StartReportGenerationView.as_view(), name='start_report'),
     path('check-report-status/<str:task_id>/', CheckTaskStatusView.as_view(), name='check_report_status'),
+    # Catch-all pour le frontend React (doit être tout en bas)
+    path('<path:resource>', views.FrontendAppView.as_view()),
 ]

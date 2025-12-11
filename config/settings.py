@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from corsheaders.defaults import default_headers
+from datetime import timedelta
 
 from pathlib import Path
 
@@ -153,13 +154,13 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    "http://18.188.32.175:5174", 
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://18.188.32.175:5173", 'http://18.188.32.175:8000'
+    "http://localhost:8000", "http://127.0.0.1:8000",
+    "http://localhost:5174", "http://127.0.0.1:5174", 
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://18.188.32.175:5173", 'http://18.188.32.175:8000',
+    "http://18.188.32.175:5174",
 ]
+
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'authorization',
 ]
@@ -184,3 +185,10 @@ CELERY_TASK_IGNORE_RESULT = False
 
 # Pour envoyer les emails dans la console (développement)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-every-5-minutes': {
+        'task': 'taches.tasks.cleanup_completed_tasks',
+        'schedule': timedelta(minutes=5),
+    },
+}

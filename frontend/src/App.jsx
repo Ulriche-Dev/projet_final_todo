@@ -119,11 +119,13 @@ function App() {
   // Génération du rapport
   const handleGenerateReport = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api-token-auth/', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ username, password }),
-});
+      const response = await fetch('/taches/start-report/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Token ${token}`,
+        },
+      });
       if (!response.ok) throw new Error('Erreur lors du démarrage du rapport');
       const data = await response.json();
       setReportTaskId(data.task_id);
@@ -139,13 +141,19 @@ function App() {
     let intervalId = null;
     const checkStatus = async () => {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/check-report-status/${reportTaskId}/`, {
+        const response = await fetch(`/check-report-status/${reportTaskId}/`, {
           headers: { Authorization: `Token ${token}` },
         });
-        if (!response.ok) throw new Error('Erreur lors du suivi du rapport');
-        const data = await response.json();
-        setReportStatus(`Statut: ${data.state}${data.result ? ' | Résultat: ' + data.result : ''}`);
-        if (data.state === 'SUCCESS' || data.state === 'FAILURE') {
+        const text = await response.text();
+        try {
+          const data = JSON.parse(text);
+          setReportStatus(`Statut: ${data.state}${data.result ? ' | Résultat: ' + data.result : ''}`);
+          if (data.state === 'SUCCESS' || data.state === 'FAILURE') {
+            clearInterval(intervalId);
+          }
+        } catch (jsonError) {
+          console.error('Réponse non JSON:', text);
+          setReportStatus(`Erreur lors du suivi du rapport (réponse non JSON, code ${response.status})`);
           clearInterval(intervalId);
         }
       } catch (error) {

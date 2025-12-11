@@ -32,3 +32,9 @@ def send_creation_email(tache_id):
 def generate_task_report():
     time.sleep(15)  # Simule un long traitement
     return "Le rapport de tâches a été généré avec succès !"
+
+
+@shared_task
+def cleanup_completed_tasks():
+    deleted_count, _ = Tache.objects.filter(termine=True).delete()
+    return deleted_count
